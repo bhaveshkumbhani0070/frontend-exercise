@@ -12,9 +12,14 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
+vi.mock('../utils/useTimer', () => ({
+  useTimer: vi.fn()
+}))
+
 describe('GamePage Component', () => {
   beforeEach(() => {
     vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams({ name: 'Alex', rows: '2', cols: '2' }), vi.fn()])
+    localStorage.clear()
   })
 
   afterEach(() => {
@@ -65,7 +70,7 @@ describe('GamePage Component', () => {
     })
   })
 
-  test('increments moves on tile mismatch', async () => {
+  test('increments moves on pair attempt', async () => {
     vi.mock('../utils/shuffle', () => ({
       shuffle: vi.fn().mockReturnValue(['/plant01.jpg', '/plant02.jpg', '/plant01.jpg', '/plant02.jpg'])
     }))
@@ -77,13 +82,33 @@ describe('GamePage Component', () => {
     )
     const tiles = screen.getAllByRole('button')
     expect(screen.getByText('Moves: 0')).toBeInTheDocument()
-    fireEvent.click(tiles[0])
-    fireEvent.click(tiles[1])
+    fireEvent.click(tiles[0]) // First tile
+    fireEvent.click(tiles[1]) // Second tile
     await waitFor(
       () => {
         expect(screen.getByText('Moves: 1')).toBeInTheDocument()
       },
       { timeout: 1000 }
     )
+  })
+
+  test('updates best time in localStorage on game completion', async () => {
+    vi.mock('../utils/shuffle', () => ({
+      shuffle: vi.fn().mockReturnValue(['/plant01.jpg', '/plant01.jpg', '/plant02.jpg', '/plant02.jpg'])
+    }))
+
+    render(
+      <MemoryRouter>
+        <GamePage />
+      </MemoryRouter>
+    )
+    const tiles = screen.getAllByRole('button')
+    fireEvent.click(tiles[0]) // First tile of first pair
+    fireEvent.click(tiles[1]) // Second tile of first pair
+    fireEvent.click(tiles[2]) // First tile of second pair
+    fireEvent.click(tiles[3]) // Second tile of second pair
+    await waitFor(() => {
+      expect(localStorage.getItem('memory_best')).toBe('0')
+    })
   })
 })

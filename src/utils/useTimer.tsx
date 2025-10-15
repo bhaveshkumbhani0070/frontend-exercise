@@ -1,11 +1,6 @@
 import { useEffect } from 'react'
 
-type Props = {
-  running: boolean
-  onTick: (seconds: number) => void
-}
-// Timer is a triggers onTick every second when running is true
-export default function Timer({ running, onTick }: Props) {
+export function useTimer(running: boolean, onTick: (seconds: number) => void) {
   useEffect(() => {
     let seconds = 0
     if (!running) return
@@ -15,5 +10,4 @@ export default function Timer({ running, onTick }: Props) {
     }, 1000)
     return () => clearInterval(id)
   }, [running, onTick])
-  return null
 }

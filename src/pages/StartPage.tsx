@@ -1,14 +1,21 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+type BoardSize = { rows: number; cols: number }
+const boardSizes = [
+  { rows: 2, cols: 2, label: '2x2' },
+  { rows: 4, cols: 4, label: '4x4' },
+  { rows: 4, cols: 5, label: '4x5' },
+  { rows: 6, cols: 6, label: '6x6' }
+]
+
 export default function StartPage() {
   const [name, setName] = useState('')
-  const [boardSize, setBoardSize] = useState('4x4')
-  const [rows, cols] = boardSize.split('x').map(Number)
+  const [boardSize, setBoardSize] = useState<BoardSize>({ rows: 4, cols: 4 })
   const navigate = useNavigate()
 
   function start() {
-    const params = new URLSearchParams({ name, rows: String(rows), cols: String(cols) })
+    const params = new URLSearchParams({ name, rows: String(boardSize.rows), cols: String(boardSize.cols) })
     navigate(`/game?${params.toString()}`)
   }
 
@@ -21,8 +28,9 @@ export default function StartPage() {
         </label>
         <input
           id='player-name'
+          aria-label='Enter your name'
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => setName(e.target.value.trim())}
           className='mb-4 w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
           placeholder='Your name'
         />
@@ -31,17 +39,21 @@ export default function StartPage() {
         </label>
         <select
           id='board-size'
-          value={boardSize}
-          onChange={(e) => setBoardSize(e.target.value)}
+          value={`${boardSize.rows}x${boardSize.cols}`}
+          onChange={(e) => {
+            const [rows, cols] = e.target.value.split('x').map(Number)
+            setBoardSize({ rows, cols })
+          }}
           className='mb-4 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'>
-          <option value='2x2'>2x2</option>
-          <option value='4x4'>4x4</option>
-          <option value='4x5'>4x5</option>
-          <option value='6x6'>6x6</option>
+          {boardSizes.map((size) => (
+            <option key={size.label} value={`${size.rows}x${size.cols}`}>
+              {size.label}
+            </option>
+          ))}
         </select>
         <div className='flex justify-between gap-2'>
           <button
-            disabled={!name.trim()}
+            disabled={!name}
             onClick={start}
             className='rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50'>
             Start
